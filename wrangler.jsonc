@@ -1,12 +1,43 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "oneye",
-  "compatibility_date": "2026-10-06",
+  "main": "cloudflare-worker.js",
+  "compatibility_date": "2026-10-07",
   "observability": {
     "enabled": true
   },
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api",
+      "/api/*"
+    ],
     "not_found_handling": "single-page-application"
+  },
+  "containers": [
+    {
+      "class_name": "GoEyeBackend",
+      "scheduling_policy": "durable_object",
+      "images": {
+        "base": {
+          "dockerfile": "./Dockerfile"
+        }
+      }
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "BACKEND",
+        "class_name": "GoEyeBackend"
+      }
+    ]
+  },
+  "exports": {
+    "GoEyeBackend": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
   }
 }

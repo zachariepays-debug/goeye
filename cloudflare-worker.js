@@ -89,7 +89,16 @@ export class GoEyeBackend extends DurableObject {
     });
 
     await this.starting;
-    return this.ctx.container.getTcpPort(BACKEND_PORT).fetch(request);
+
+    // The Container API expects the forwarded request to use the internal
+    // container hostname. Preserve the original path/query/body while
+    // removing the public Host header.
+    const url = new URL(request.url);
+    url.protocol = "http:";
+    url.host = "container";
+    const forwarded = new Request(url, request);
+    forwarded.headers.delete("host");
+    return this.ctx.container.getTcpPort(BACKEND_PORT).fetch(forwarded);
   }
 }
 
